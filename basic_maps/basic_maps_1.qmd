@@ -1,0 +1,265 @@
+---
+title: "Code Along With Me (Episode 3)"
+subtitle: "Performing basic mapping with assistance from LLMs"
+author: "William Okech"
+date: "2024-06-21"
+image: ""
+#categories: [RStudio, R, Tutorial, Blog]
+toc: true
+format: 
+  html:
+    code-fold: show
+    code-overflow: wrap
+    warning: false
+---
+
+# Introduction
+
+Using various LLMs for coding assistance
+
+Prompt
+Persona:  You are a GIS data analyst working on spatial mapping at a newly funded startup. Context: You have been tasked with plotting county populations in the USA. Action: Write an R script to load the required packages (usmap) and datasets (county population data from the usmaps package), as well as plot the map. Tone: Professional. Output Format: Provide an R script.
+
+EDA is very subjective so outputs will differ
+
+Here we tested whether the code could be run as-is and the number of modifications required. 
+
+# 1. ChatGPT
+
+## Corrections to code:
+1. Uses "pop_2015" rather than "pop_2022" for column name
+
+Colours need to be improved
+
+## Code
+
+```{r}
+
+# Load necessary libraries
+library(usmap)
+library(tidyverse)
+library(ggplot2)
+
+# Load the built-in county population data from the usmap package
+data(countypop)
+
+# Inspect the data
+glimpse(countypop)
+
+# Plot the map of county populations
+plot_usmap(data = countypop, values = "pop_2022", regions = "counties") +
+  scale_fill_continuous(low = "white", high = "red", name = "Population (2022)", label = scales::comma) +
+  labs(title = "County Populations in the USA (2022)",
+       subtitle = "Based on data from the US Census Bureau",
+       caption = "Source: USmap package") +
+  theme(legend.position = "right",
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+
+# Save the plot
+#ggsave("usa_county_population_map.png", width = 10, height = 6)
+
+# Additional analysis and customization can be performed as needed
+
+```
+
+# 2. CoPilot
+
+## Corrections to code:
+
+## Code
+
+```{r}
+
+# Load necessary libraries
+library(usmap)
+library(ggplot2)
+
+# Read county population data (assuming it's already loaded or available)
+# The 'countypop' function provides population estimates for 2022 by county
+# You can install the 'usmap' package if you haven't already: install.packages("usmap")
+data(countypop)
+
+# Plot the map
+usmap::plot_usmap(data = countypop, values = "pop_2022", color = "skyblue") +
+  scale_fill_continuous(name = "Population", label = scales::comma) +
+  labs(title = "County Populations in the USA (2022)", subtitle = "Source: US Census Bureau") +
+  theme_minimal()
+
+# Save the plot (optional)
+# ggsave("county_population_map.png", plot = last_plot(), width = 10, height = 8, dpi = 300)
+
+# End of script
+
+```
+
+# 3. Google Gemini
+
+## Corrections to code:
+1. To get county pop it uses "usmap::get_county_pop(year = 2023)"
+2. Included "color = color_palette)"
+
+## Code
+
+```{r}
+
+# This script utilizes the usmaps package for county data
+
+# Load required libraries
+library(usmap)
+
+# Download county population data from usmaps (internet connection required)
+county_pops <- countypop # Replace year with desired year (available years may vary)
+
+# Define color palette for population density
+# color_palette <- colorRampPalette(c("lightblue", "royalblue"))
+
+# Create a map with county population as the fill variable
+plot_usmap(regions = "counties", 
+           data = county_pops, 
+           values = "pop_2022", 
+           # color = color_palette
+           ) +
+scale_fill_continuous(low = "lightblue", high = "royalblue", name = "Population (2022)", label = scales::comma)
+  labs(title = "County Population in USA (2023)", 
+       fill = "Population") +
+  theme(legend.position = "right")
+
+# Additional customizations (optional)
+# * Change the legend title with scale_fill_continuous(name = "Population (2023)")
+# * Zoom to specific region with plot_usmap(fit = TRUE)
+
+# Note: This script relies on internet connection to download data from usmaps package.
+
+
+```
+
+# 4. Anthropic Claude
+
+## Corrections to code:
+1. pop_2015 was used rather than pop_2022
+2. Unnecessary step = county_data <- countypop %>% rename(fips_ = fips, values = pop_2022)
+
+## Code
+
+```{r}
+
+# Load required packages
+library(usmap)
+library(ggplot2)
+library(dplyr)
+
+# Load the county population data from usmap package
+data("countypop")
+
+# Prepare the data
+# county_data <- countypop %>% rename(fips_ = fips, values = pop_2022)
+
+# Create the map
+us_county_map <- plot_usmap(
+  data = countypop,
+  values = "pop_2022",
+  color = "black",
+  size = 0.1,
+  regions = "counties"
+) +
+  scale_fill_continuous(
+    low = "light blue", 
+    high = "dark blue", 
+    name = "Population (2022)", 
+    label = scales::comma
+  ) +
+  theme(
+    legend.position = "right",
+    plot.title = element_text(size = 16, hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5)
+  ) +
+  labs(
+    title = "US County Population (2022)",
+    subtitle = "Data source: US Census Bureau"
+  )
+
+# Display the map
+print(us_county_map)
+
+# Save the map
+#ggsave("us_county_population_map.png", us_county_map, width = 12, height = 8, dpi = 300)
+
+```
+
+# 5. Perplexity
+
+## Corrections to code:
+1 . Calls "county_populations" not countypop
+
+## Code
+
+```{r}
+
+# Load necessary libraries
+library(usmap)
+library(tidyverse)
+library(leaflet)
+
+# Load the county population data
+data(countypop, package = "usmap")
+
+# Convert the county population data to a long format
+county_populations <- countypop
+
+# Create a leaflet map
+m <- leaflet() %>%
+  addTiles() %>%
+  addPolygons(data = county_populations, 
+              layerId = ~fips, 
+              stroke = FALSE, 
+              fillOpacity = 0.5, 
+              fillColor = ~colorQuantile(c("blue", "green", "red"), county_populations$value))
+
+# Add a legend
+m <- m %>% addLegend("bottomright", pal = colorQuantile(c("blue", "green", "red"), county_populations_long$value), values = ~county_populations_long$value, title = "Population")
+
+# Display the map
+m
+
+```
+
+# 6. Cohere
+
+## Corrections to code:
+1. Wrong code: county_pop <- county_pop_usmap()
+2. POP = as.numeric(POP)
+3. county_map <- us_map(county_data, values = "pop_2022", title = "US County Populations", legend = "Population")
+4. Too many mistakes
+
+
+## Code
+
+```{r}
+
+# Load the required packages
+library(usmap)
+library(usmapdata)
+library(tidyverse)
+
+# Load the county population data from the usmapdata package
+# county_pop <- county_pop_usmap()
+
+# Prepare the data for mapping
+county_data <- countypop %>%
+  mutate(pop_2022 = as.numeric(pop_2022))
+
+# Create a map of county populations
+county_map <- plot_usmap(county_data, values = "pop_2022", regions = "counties")
+
+# Style the map
+county_map +
+  theme(plot.title = element_text(size = 14, face = "bold"),
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10))
+
+# Plot the map
+print(county_map)
+
+
+```

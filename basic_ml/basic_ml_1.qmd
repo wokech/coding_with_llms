@@ -1,0 +1,541 @@
+---
+title: "Code Along With Me (Episode 3)"
+subtitle: "Performing basic ML with assistance from LLMs"
+author: "William Okech"
+date: "2024-06-20"
+image: ""
+#categories: [RStudio, R, Tutorial, Blog]
+toc: true
+format: 
+  html:
+    code-fold: show
+    code-overflow: wrap
+    warning: false
+---
+
+# 1. ChatGPT
+
+## Corrections to code:
+1. Initially failed to set_mode()
+2. Overall, seemed to struggle, will need a lot of review
+
+## Code
+
+```{r}
+
+# Load necessary libraries
+library(tidyverse)
+library(palmerpenguins)
+library(ggplot2)
+library(tidymodels)
+library(xgboost)
+library(GGally)
+library(vip)
+
+# Load the penguins dataset
+data("penguins")
+
+# Data Cleaning and Processing
+penguins_clean <- penguins %>%
+  drop_na() %>%
+  mutate(
+    species = factor(species),
+    island = factor(island),
+    sex = factor(sex),
+    bill_length_mm = as.numeric(bill_length_mm),
+    bill_depth_mm = as.numeric(bill_depth_mm),
+    flipper_length_mm = as.numeric(flipper_length_mm),
+    body_mass_g = as.numeric(body_mass_g)
+  )
+
+# Exploratory Data Analysis (EDA)
+# Distribution of species
+ggplot(penguins_clean, aes(x = species)) +
+  geom_bar(fill = "steelblue") +
+  labs(title = "Distribution of Penguin Species", x = "Species", y = "Count")
+
+# Pairwise scatter plots
+# penguins_clean %>%
+#   select(bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g, species) %>%
+#   ggpairs(aes(color = species, alpha = 0.7)) +
+#   theme_bw() +
+#   labs(title = "Pairwise Scatter Plots of Penguin Measurements")
+
+# Split data into training and testing sets
+set.seed(123)
+penguins_split <- initial_split(penguins_clean, strata = species)
+penguins_train <- training(penguins_split)
+penguins_test <- testing(penguins_split)
+
+# Create a recipe for data preprocessing
+penguins_recipe <- recipe(species ~ ., data = penguins_train) %>%
+  step_normalize(all_predictors()) %>%
+  step_dummy(all_nominal_predictors())
+
+# Define models without hyperparameter tuning
+logistic_model <- logistic_reg() %>% set_engine("glm") %>% set_mode("classification")
+decision_tree_model <- decision_tree() %>% set_engine("rpart") %>% set_mode("classification")
+random_forest_model <- rand_forest() %>% set_engine("ranger") %>% set_mode("classification")
+svm_model <- svm_rbf() %>% set_engine("kernlab") %>% set_mode("classification")
+xgboost_model <- boost_tree() %>% set_engine("xgboost") %>% set_mode("classification")
+
+# Create workflows
+workflows <- list(
+  logistic_reg = workflow() %>% add_model(logistic_model) %>% add_recipe(penguins_recipe),
+  decision_tree = workflow() %>% add_model(decision_tree_model) %>% add_recipe(penguins_recipe),
+  random_forest = workflow() %>% add_model(random_forest_model) %>% add_recipe(penguins_recipe),
+  svm = workflow() %>% add_model(svm_model) %>% add_recipe(penguins_recipe),
+  xgboost = workflow() %>% add_model(xgboost_model) %>% add_recipe(penguins_recipe)
+)
+
+# Fit the models to the training data
+fitted_models <- map(workflows, ~ fit(.x, data = penguins_train))
+
+# Predict on test data and evaluate performance
+predictions <- map(fitted_models, ~ predict(.x, penguins_test) %>%
+                     bind_cols(penguins_test) %>%
+                     metrics(truth = species, estimate = .pred_class))
+
+# Create a summary table to compare the models
+performance_table <- map_dfr(predictions, ~ .x %>% filter(.metric == "accuracy"), .id = "model")
+
+# Print the performance table
+print(performance_table)
+
+# Interpret model performance using variable importance for the best model
+best_model_index <- which.max(performance_table$mean)
+best_model <- fitted_models[[best_model_index]]
+vip(best_model$fit)
+
+# Save the performance table as a CSV file
+write_csv(performance_table, "model_performance_comparison.csv")
+
+# Additional analysis and customization can be performed as needed
+
+```
+
+# 2. CoPilot
+
+## Corrections to code:
+
+## Code
+
+```{r}
+
+# Load necessary libraries
+library(tidyverse)
+library(tidymodels)
+
+# Read the penguins dataset (assuming it's already available)
+data(penguins)
+
+# Data cleaning: Remove missing values
+penguins_clean <- penguins %>%
+  drop_na()
+
+# EDA: Explore relationships between features (you can add more plots)
+ggplot(penguins_clean, aes(x = flipper_length_mm, y = body_mass_g)) +
+  geom_point() +
+  labs(x = "Flipper Length (mm)", y = "Body Mass (g)",
+       title = "Scatter Plot: Flipper Length vs. Body Mass")
+
+# Split data into training and testing sets
+set.seed(123)
+penguins_split <- initial_split(penguins_clean, prop = 0.8)
+penguins_train <- training(penguins_split)
+penguins_test <- testing(penguins_split)
+
+# Define classification models
+models <- list(
+  logistic_reg = logistic_reg(),
+  decision_tree = decision_tree(),
+  random_forest = rand_forest(),
+  xgboost = boost_tree()
+)
+
+# Train models
+model_results <- map(models, function(model) {
+  fit_resamples(
+    model,
+    species ~ .,
+    data = penguins_train,
+    resamples = bootstraps(times = 10)
+  )
+})
+
+# Hyperparameter tuning (you can customize this further)
+tuned_models <- map(model_results, tune_grid)
+
+# Evaluate model performance
+model_metrics <- map(tuned_models, collect_metrics)
+
+# Create a table of model comparison
+model_comparison <- model_metrics %>%
+  bind_rows(.id = "model") %>%
+  filter(.metric == "accuracy") %>%
+  arrange(desc(mean))
+
+# Print the model comparison table
+print(model_comparison)
+
+# Interpretability: Feature importance (for random forest or xgboost)
+final_model <- select_best(model_results, "accuracy")
+final_rf <- final_model$fit$random_forest
+feature_importance <- vip(final_rf)
+
+# Save feature importance plot (optional)
+ggsave("feature_importance.png", feature_importance, width = 6, height = 4, dpi = 300)
+
+# Test the best model on the test set
+test_predictions <- predict(final_model, new_data = penguins_test)
+
+# Evaluate test performance (you can add more metrics)
+test_metrics <- collect_metrics(test_predictions, truth = species, estimate = .pred_class)
+
+# Print test metrics
+print(test_metrics)
+
+# Additional analyses and visualizations can be added as needed
+
+
+```
+
+# 3. Google Gemini
+
+## Corrections to code:
+1. Issue with createDataPartition
+
+## Code
+
+```{r}
+
+# Load libraries
+library(palmerpenguins)
+library(tidyverse)
+library(caret) # For data splitting
+library(recipes) # For data preparation
+library(parsnip) # Machine learning pipelines
+library(mlr) # For model tuning
+library(xgboost) # For XGBoost model
+library(iml) # For interpretable ML
+
+# Load penguin data
+penguins <- palmerpenguins::penguins
+
+# Check for missing values
+summary(penguins)
+
+# Handle missing values (consider imputation or removal based on analysis needs)
+# This example removes rows with missing values
+penguins <- na.omit(penguins)
+
+# Define target variable (species) and features
+target <- "species"
+features <- setdiff(names(penguins), target)
+
+# Split data into training and testing sets
+training_data <- createDataPartition(penguins, times=1, p=.8, list=FALSE)
+train_data <- penguins[training_data,]
+test_data <- penguins[!training_data,]
+
+# Feature engineering with recipe (consider feature scaling/normalization)
+recipe <- recipe(formula = paste0(target, " ~ ", paste(features, collapse = " + "))) %>%
+  recipe_integer_codes(all_nominal = TRUE) %>%  # Encode categorical features
+  recipe_scale(all_numeric = TRUE)            # Scale numerical features
+
+# Create recipe for training and testing data
+train_recipe <- prep(recipe, train_data)
+test_recipe <- prep(recipe, test_data)
+
+# Define classification models with parsnip
+models <- list(
+  lm = parsnip::linear_lr(),
+  rf = parsnip::random_forest(),
+  svm = parsnip::svm_linear(),
+  knn = parsnip::knn(),
+  xgb = parsnip::parsnip_model(xgboost::xgbModel())
+)
+
+# Hyperparameter tuning with mlr
+model_results <- lapply(models, function(model) {
+  ctrl <- mlr::TrainControl(timeslice = 5/20, seed = 123)
+  tune <- mlr::tune(model, train_recipe, target, resampling = ctrl)
+  best_model <- mlr::get_best_model(tune)
+  evaluate(best_model, test_recipe, target)
+})
+
+# Summarize model performance
+model_performance <- lapply(model_results, function(result) {
+  c(model = names(result), accuracy = result$metrics$accuracy)
+}) %>%
+  as.data.frame() %>%
+  arrange(desc(accuracy))
+
+# Print model performance table
+print(model_performance)
+
+# Interpretable Machine Learning (consider using DALEX or LIME for specific explanations)
+best_model <- get_model(model_results[[which.max(model_performance$accuracy)]])
+importance <- vip(best_model, train_recipe)  # Feature importance analysis
+
+# Additional analysis (consider feature importance plots, variable contributions)
+# Explore the most important features for the best model's predictions.
+
+# Remember to interpret the results and choose the best model based on your specific needs.
+
+
+```
+
+# 4. Anthropic Claude
+
+## Corrections to code:
+
+## Code
+
+```{r}
+
+# Load required packages
+library(tidyverse)
+library(palmerpenguins)
+library(tidymodels)
+library(xgboost)
+library(vip)
+library(DALEXtra)
+
+# Load and preprocess the data
+data(penguins)
+penguins_clean <- penguins %>%
+  drop_na() %>%
+  mutate(across(where(is.character), as.factor))
+
+# Split the data
+set.seed(123)
+split <- initial_split(penguins_clean, prop = 0.8, strata = species)
+train_data <- training(split)
+test_data <- testing(split)
+
+# Create a recipe
+penguin_recipe <- recipe(species ~ ., data = train_data) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_normalize(all_predictors())
+
+# Create model specifications
+log_reg_spec <- logistic_reg() %>% set_engine("glm")
+rf_spec <- rand_forest() %>% set_engine("ranger") %>% set_mode("classification")
+svm_spec <- svm_rbf() %>% set_engine("kernlab") %>% set_mode("classification")
+knn_spec <- nearest_neighbor() %>% set_engine("kknn") %>% set_mode("classification")
+xgb_spec <- boost_tree() %>% set_engine("xgboost") %>% set_mode("classification")
+
+# Create workflows
+log_reg_wf <- workflow() %>% add_recipe(penguin_recipe) %>% add_model(log_reg_spec)
+rf_wf <- workflow() %>% add_recipe(penguin_recipe) %>% add_model(rf_spec)
+svm_wf <- workflow() %>% add_recipe(penguin_recipe) %>% add_model(svm_spec)
+knn_wf <- workflow() %>% add_recipe(penguin_recipe) %>% add_model(knn_spec)
+xgb_wf <- workflow() %>% add_recipe(penguin_recipe) %>% add_model(xgb_spec)
+
+# Create resamples for cross-validation
+cv_folds <- vfold_cv(train_data, v = 5, strata = species)
+
+# Tune hyperparameters for XGBoost
+xgb_grid <- grid_regular(
+  trees(range = c(100, 1000)),
+  tree_depth(range = c(3, 10)),
+  learn_rate(range = c(-4, -1)),
+  levels = 5
+)
+
+xgb_tuned <- tune_grid(
+  xgb_wf,
+  resamples = cv_folds,
+  grid = xgb_grid,
+  metrics = metric_set(accuracy, roc_auc)
+)
+
+# Select best XGBoost model
+best_xgb <- xgb_tuned %>% select_best()
+final_xgb_wf <- xgb_wf %>% finalize_workflow(best_xgb)
+
+# Fit all models
+log_reg_fit <- fit(log_reg_wf, train_data)
+rf_fit <- fit(rf_wf, train_data)
+svm_fit <- fit(svm_wf, train_data)
+knn_fit <- fit(knn_wf, train_data)
+xgb_fit <- fit(final_xgb_wf, train_data)
+
+# Create a function to calculate metrics
+calc_metrics <- function(model, data) {
+  predict(model, data) %>%
+    bind_cols(data) %>%
+    metrics(truth = species, estimate = .pred_class) %>%
+    select(.metric, .estimate) %>%
+    pivot_wider(names_from = .metric, values_from = .estimate)
+}
+
+# Calculate metrics for all models
+models <- list(
+  Logistic_Regression = log_reg_fit,
+  Random_Forest = rf_fit,
+  SVM = svm_fit,
+  KNN = knn_fit,
+  XGBoost = xgb_fit
+)
+
+results <- map_dfr(models, calc_metrics, data = test_data, .id = "Model")
+
+# Print comparison table
+print(results)
+
+# Variable Importance for XGBoost
+xgb_vip <- final_xgb_wf %>%
+  fit(train_data) %>%
+  extract_fit_parsnip() %>%
+  vip()
+
+print(xgb_vip)
+
+# SHAP values for XGBoost
+explainer <- explain_tidymodels(
+  final_xgb_wf %>% fit(train_data),
+  data = train_data %>% select(-species),
+  y = train_data$species,
+  label = "XGBoost"
+)
+
+shap <- predict_parts(explainer, new_observation = test_data[1,], type = "shap")
+plot(shap)
+
+# Partial Dependence Plot
+pdp <- model_profile(explainer, variables = "bill_length_mm")
+plot(pdp)
+
+```
+
+# 5. Perplexity
+
+## Corrections to code:
+
+## Code
+
+# 6. Cohere
+
+## Corrections to code:
+
+1. Installing unknown packages library(tidymodels.datasets)
+library(tidymodels.xgboost)
+2. Loaded in the wrong penguins data
+
+## Code
+
+```{r}
+
+# Load the required packages
+library(tidyverse)
+library(tidymodels)
+library(yardstick)
+library(modeldata)
+library(vip)
+library(patchwork)
+library(readr)
+
+# Read the penguins dataset
+data(penguins)
+
+# Explore the structure of the dataset
+str(penguins)
+
+# Data Cleaning and Processing
+
+# Convert bill_length_mm and bill_depth_mm to numeric
+penguins <- penguins %>%
+  mutate(across(c(bill_length_mm, bill_depth_mm), as.numeric))
+
+# Handle missing values
+penguins_cleaned <- penguins %>%
+  drop_na()
+
+# Split the data into training and testing sets
+set.seed(123)
+split <- initial_split(penguins_cleaned, prop = 0.8)
+train_data <- training(split)
+test_data <- testing(split)
+
+# Define the outcome and predictor variables
+outcome <- bill_length_mm ~ .
+predictors <- select(train_data, where(is.numeric))
+
+# Create a recipe for data preprocessing
+recipe <- recipe(outcome, data = train_data) %>%
+  step_normalize(all_numeric()) %>%
+  step_dummy(all_nominal())
+
+# Prepare the data using the recipe
+prep <- prep(recipe)
+baked_data <- bake(prep, new_data = NULL)
+
+# Create a workflow for classification models
+workflow <- workflow() %>%
+  add_model(set_mode("classification") %>% set_engine("xgboost")) %>%
+  add_model(set_mode("classification") %>% set_engine("logistic_reg")) %>%
+  add_model(set_mode("classification") %>% set_engine("rand_forest")) %>%
+  add_model(set_mode("classification") %>% set_engine("boost_tree")) %>%
+  add_model(set_mode("classification") %>% set_engine("linear_reg")) %>%
+  add_formula(outcome)
+
+# Specify the model parameters
+model_params <- update_reg(list()) %>%
+  update_model(xgboost_binary, objective = "binary:logistic", nrounds = 100, eta = 0.3) %>%
+  update_model(logistic_reg, penalty = "l2") %>%
+  updateMultiplier(rand_forest, mtry = 3) %>%
+  update_model(boost_tree, tree_depth = 3, min_n = 2) %>%
+  update_model(linear_reg, penalty = "none")
+
+# Tune the hyperparameters
+tuning_results <- workflow %>%
+  tune_grid(resamples = cv_folds(train_data, v = 5),
+            parameters = model_params,
+            metrics = metric_set(accuracy, roc_auc, f_meas, log_loss))
+
+# Select the best model
+best_model <- select_best(tuning_results, metric = "roc_auc")
+
+# Extract the final workflow
+final_workflow <- extract_workflow(best_model)
+
+# Train the final model on the full training data
+final_model <- final_workflow %>%
+  fit(data = train_data)
+
+# Make predictions on the test data
+predictions <- predict(final_model, new_data = test_data)
+
+# Calculate model performance metrics
+accuracy <- metric_set(accuracy, roc_auc, f_meas, log_loss)
+performance <- predictions %>%
+  metrics(truth = bill_length_mm, .pred_class = bill_depth_mm, .pred_prob = bill_length_mm) %>%
+  mutate(model = "Final Model")
+
+# Compare classification models
+compare_models <- bind_rows(tuning_results %>% show_best(metric = "roc_auc"), performance)
+
+# Create a table to compare the models
+model_comparison <- compare_models %>%
+  select(model, .metric, mean, .config) %>%
+  pivot_wider(names_from = .config, values_from = mean) %>%
+  arrange(desc(roc_auc_mean))
+
+# Evaluate model interpretability
+variable_importance <- vip(final_model, baked_data)
+
+interpretability_score <- variable_importance %>%
+  pull(Importance) %>%
+  mean()
+
+# Print the model comparison table
+print(model_comparison)
+
+# Print the interpretability score
+print(interpretability_score)
+
+
+
+```
