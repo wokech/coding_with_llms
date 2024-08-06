@@ -1,7 +1,7 @@
 # Classification ChatGPT
 
 # Libraries
-install.packages(c("shiny", "tidymodels", "randomForest"))
+# install.packages(c("shiny", "tidymodels", "randomForest"))
 
 # Shiny App
 
@@ -11,7 +11,7 @@ library(randomForest)
 
 # Load or train the model
 # Assuming rf_fit is your trained random forest model
-# load("rf_model.RData")
+readRDS("C:/R_Files/coding_with_llms/ml_production_apps/saved_models/rf_model.RDS")
 
 # UI
 ui <- fluidPage(
