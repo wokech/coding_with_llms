@@ -2,9 +2,9 @@
 
 # Libraries
 
-install.packages("shiny")
-install.packages("tidyverse")
-install.packages("broom")  # For tidy model outputs
+# install.packages("shiny")
+# install.packages("tidyverse")
+# install.packages("broom")  # For tidy model outputs
 
 # App
 
@@ -12,20 +12,7 @@ install.packages("broom")  # For tidy model outputs
 library(shiny)
 library(tidyverse)
 
-# Load your pre-trained model (replace with your actual model)
-# For demonstration, we will train a simple model on the Adult Income dataset
-adult_data <- read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data", 
-                       header = FALSE, na.strings = " ?", 
-                       col.names = c("age", "workclass", "fnlwgt", "education", 
-                                     "education.num", "marital.status", "occupation", 
-                                     "relationship", "race", "sex", 
-                                     "capital.gain", "capital.loss", "hours.per.week", 
-                                     "native.country", "income"))
-
-model <- decision_tree() %>%
-  set_engine("rpart") %>%
-  set_mode("classification") %>%
-  fit(income ~ ., data = adult_data)
+model <- readRDS("class_perplexity.rds")
 
 # Define UI
 ui <- fluidPage(

@@ -19,8 +19,8 @@
 # Step 1: Load Required Libraries
 
 # Install tidymodels if not already installed
-install.packages("tidymodels")
-install.packages("skimr")
+# install.packages("tidymodels")
+# install.packages("skimr")
 
 # Load libraries
 library(tidymodels)
@@ -30,7 +30,8 @@ library(skimr)
 
 # Load the dataset
 url <- "https://archive.ics.uci.edu/ml/machine-learning-databases/concrete/compressive/Concrete_Data.xls"
-concrete_data <- readxl::read_excel(url)
+download.file(url=url, destfile='coding_with_llms/ml_production_apps/datasets/concrete_data')
+concrete_data <- read_xlsx("")
 
 # Display the first few rows and summary
 head(concrete_data)

@@ -109,8 +109,7 @@ print(conf_mat)
 # Assuming you have already trained your model and it's called 'final_model'
 library(tidymodels)
 
-# Save the model
-saveRDS(final_model, "wine_classification_model.rds")
+#### Store the final model in app directory!!!!!!!!!!!!!
 
-# To load the model later:
-# loaded_model <- readRDS("wine_classification_model.rds")
+# Save the model
+saveRDS(final_model, "ml_production_apps/saved_models/model_classification/class_claude.rds")

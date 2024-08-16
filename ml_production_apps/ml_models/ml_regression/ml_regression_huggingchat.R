@@ -25,16 +25,16 @@ library(tidymodels)
 library(tidyverse)
 
 # Load the Boston Housing dataset
-data("BostonHousing", package = "MASS")
+data("Boston", package = "MASS")
 
 # Take a look at the data
-glimpse(BostonHousing)
+glimpse(Boston)
 
 # Step 2: Preprocess the data
 
 # Split the data into training and testing sets
 set.seed(123)
-boston_split <- initial_split(BostonHousing, prop = 0.8)
+boston_split <- initial_split(Boston, prop = 0.8)
 boston_train <- training(boston_split)
 boston_test <- testing(boston_split)
 

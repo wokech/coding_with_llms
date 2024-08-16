@@ -1,0 +1,40 @@
+The Breast Cancer Wisconsin (Diagnostic) dataset contains 30 features that are computed from a digitized image of a fine needle aspirate (FNA) of a breast mass. These features describe characteristics of the cell nuclei present in the image. Here's a list of these features with brief descriptions:
+
+feature1: Radius mean (mean of distances from center to points on the perimeter)
+feature2: Texture mean (standard deviation of gray-scale values)
+feature3: Perimeter mean
+feature4: Area mean
+feature5: Smoothness mean (local variation in radius lengths)
+feature6: Compactness mean (perimeter^2 / area - 1.0)
+feature7: Concavity mean (severity of concave portions of the contour)
+feature8: Concave points mean (number of concave portions of the contour)
+feature9: Symmetry mean
+feature10: Fractal dimension mean ("coastline approximation" - 1)
+feature11: Radius standard error
+feature12: Texture standard error
+feature13: Perimeter standard error
+feature14: Area standard error
+feature15: Smoothness standard error
+feature16: Compactness standard error
+feature17: Concavity standard error
+feature18: Concave points standard error
+feature19: Symmetry standard error
+feature20: Fractal dimension standard error
+feature21: Radius worst (mean of the three largest values)
+feature22: Texture worst
+feature23: Perimeter worst
+feature24: Area worst
+feature25: Smoothness worst
+feature26: Compactness worst
+feature27: Concavity worst
+feature28: Concave points worst
+feature29: Symmetry worst
+feature30: Fractal dimension worst
+
+These features are grouped into three categories:
+
+Mean values (features 1-10)
+Standard error (features 11-20)
+"Worst" or largest (mean of the three largest values) (features 21-30)
+
+Each of these categories contains measurements for ten different characteristics of the cell nuclei. These detailed measurements allow for a comprehensive analysis of the cell nuclei's properties, which can be used to differentiate between benign and malignant tumors.

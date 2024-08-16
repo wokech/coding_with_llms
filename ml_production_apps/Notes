@@ -1,0 +1,31 @@
+## Notes for running models
+
+## Once you get the model, store it in the app directory
+
+## Classification
+
+1) ChatGPT - created model but shiny app didn't work
+2) Claude - worked well
+3) Gemini - errors in the code for ML model, model needs a lot of work
+4) HuggingChat - didn't find the right source for data, didn't rename columns, preprocess
+   not done
+5) Perplexity - few mistakes, needed to change some syntax but model worked
+6) Poe - need to make corrections to the code during preprocessing.
+
+## Regression
+
+1) ChatGPT - need to get the download working, ...
+2) Claude - issues with preprocessing
+3) Gemini - wrong dataset used, needs work,...
+4) HuggingChat - Errors in model creation
+5) Perplexity - Need to correct data ingestion with xls
+6) Poe - Issue with uploading the Boston housing dataset
+
+## TBD
+
+1) Need to correct errors in code..
+
+## New Apps
+
+1) Obesity App with Claude
+

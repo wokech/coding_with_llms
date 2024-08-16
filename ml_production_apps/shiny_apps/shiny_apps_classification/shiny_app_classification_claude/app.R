@@ -2,7 +2,7 @@
 
 # Libraries
 
-install.packages(c("shiny", "tidymodels"))
+#install.packages(c("shiny", "tidymodels"))
 
 # App
 
@@ -10,7 +10,7 @@ library(shiny)
 library(tidymodels)
 
 # Load the trained model (assuming you've saved it)
-final_model <- readRDS("final_wine_model.rds")
+final_model <- readRDS("class_claude.rds")
 
 # Define UI
 ui <- fluidPage(

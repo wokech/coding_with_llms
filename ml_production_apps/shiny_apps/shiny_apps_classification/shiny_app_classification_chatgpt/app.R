@@ -11,7 +11,7 @@ library(randomForest)
 
 # Load or train the model
 # Assuming rf_fit is your trained random forest model
-readRDS("C:/R_Files/coding_with_llms/ml_production_apps/saved_models/rf_model.RDS")
+rf_fit <- readRDS("class_chatgpt.RDS")
 
 # UI
 ui <- fluidPage(

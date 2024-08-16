@@ -113,4 +113,4 @@ print(new_prediction)
 # Save models
 
 # Save the classification model
-saveRDS(classification_model, "classification_model.rds")
+saveRDS(fit, "ml_production_apps/saved_models/model_classification/class_perplexity.rds")

@@ -136,6 +136,4 @@ rf_metrics
 # Save and load the model to create Shiny App
 
 # Assuming rf_fit is your trained random forest model
-saveRDS(rf_fit, file = "ml_production_apps/saved_models/rf_model.RDS")
-
-# rf_fit <- readRDS("rf_model.RDS")
+saveRDS(rf_fit, file = "ml_production_apps/saved_models/model_classification/class_chatgpt.RDS")
