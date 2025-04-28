@@ -53,6 +53,8 @@ penguins_clean %>%
   ggpairs(aes(color = species, alpha = 0.5)) +
   theme_minimal()
 
+ggsave("benchmark_llms/benchmark_3/images/pairplot_chatgpt.png", height = 8, width = 12, dpi = 150)
+
 # CoPilot
 
 # Load necessary packages
@@ -99,6 +101,8 @@ ggplot(data_clean, aes(x = species, y = flipper_length_mm, fill = species)) +
 ggpairs(data_clean, columns = c("bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g"),
         aes(color = species)) +
   labs(title = "Pairplot of Key Features")
+
+ggsave("benchmark_llms/benchmark_3/images/pairplot_copilot.png", height = 8, width = 12, dpi = 150)
 
 # Save cleaned dataset
 #write_csv(data_clean, "cleaned_penguins.csv")
@@ -207,6 +211,8 @@ penguins_for_pairplot <- penguins_cleaned %>%
 ggpairs(penguins_for_pairplot, aes(color = species)) +
   theme_minimal() +
   labs(title = "Pairwise Relationships of Penguin Measurements by Species")
+
+ggsave("benchmark_llms/benchmark_3/images/pairplot_gemini.png", height = 8, width = 12, dpi = 150)
 
 # You can further customize the ggpairs plot by specifying different plots
 # for the lower diagonal, upper diagonal, and diagonal.
@@ -367,6 +373,8 @@ p9 <- ggpairs(
 
 p9
 
+ggsave("benchmark_llms/benchmark_3/images/pairplot_claude.png", height = 8, width = 12, dpi = 150)
+
 # 8. Save all the plots
 # ggsave("plot1_species_distribution.png", p1, width = 8, height = 6)
 # ggsave("plot2_island_distribution.png", p2, width = 8, height = 6)
@@ -500,6 +508,8 @@ ggpairs(penguins_clean,
         diag = list(continuous = wrap("densityDiag", alpha = 0.7))) +
   theme(panel.grid.minor = element_blank())
 
+ggsave("benchmark_llms/benchmark_3/images/pairplot_perplexity.png", height = 8, width = 12, dpi = 150)
+
 ## 6. Final Data Export
 # write_csv(penguins_clean, "penguins_cleaned_20250425.csv")
 
@@ -534,6 +544,8 @@ ggpairs(
   title = "Pairplot of Numerical Variables",
   columns = c("bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g")
 )
+
+ggsave("benchmark_llms/benchmark_3/images/pairplot_cohere.png", height = 8, width = 12, dpi = 150)
 
 # Poe
 
@@ -594,6 +606,8 @@ ggplot(penguins_clean, aes(x = species, y = flipper_length_mm, fill = species)) 
 ggpairs(penguins_clean, 
         mapping = aes(color = species),
         title = "Pair Plot of Penguin Measurements")
+
+ggsave("benchmark_llms/benchmark_3/images/pairplot_poe.png", height = 8, width = 12, dpi = 150)
 
 # Save the summary statistics to a CSV file
 # write.csv(summary_stats, "penguins_summary_statistics.csv", row.names = FALSE)
@@ -819,6 +833,8 @@ pairplot <- ggpairs(
 # Print the pair plot (may take a moment to render)
 print(pairplot)
 
+ggsave("benchmark_llms/benchmark_3/images/pairplot_googleaistudio.png", height = 8, width = 12, dpi = 150)
+
 # Optional: Save the pair plot
 # ggsave("penguins_pairplot.png", pairplot, width = 12, height = 10)
 
@@ -1011,6 +1027,7 @@ pair_plot <- ggpairs(penguins_clean,
 
 print(pair_plot)
 
+ggsave("benchmark_llms/benchmark_3/images/pairplot_deepseek.png", height = 8, width = 12, dpi = 150)
 
 # 5. Additional Insights
 cat("\n=== Additional Insights ===\n")
@@ -1099,6 +1116,8 @@ pairplot <- ggpairs(cleaned_penguins,
                     title = "Pairplot of Penguin Measurements")
 print(pairplot)
 
+ggsave("benchmark_llms/benchmark_3/images/pairplot_qwen.png", height = 8, width = 12, dpi = 150)
+
 # End of Script
 
 
@@ -1171,6 +1190,8 @@ ggpairs(penguins_clean,
         columns = c("bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g"),
         ggplot2::aes(color = species, alpha = 0.6)) +
   theme_minimal()
+
+ggsave("benchmark_llms/benchmark_3/images/pairplot_lechat.png", height = 8, width = 12, dpi = 150)
 
 # Save the pairplot
 # ggsave("penguins_pairplot.png")
